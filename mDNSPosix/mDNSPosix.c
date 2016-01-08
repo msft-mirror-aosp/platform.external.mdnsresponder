@@ -1357,6 +1357,14 @@ mDNSexport void    mDNSPlatformStrCopy(void *dst, const void *src)
 	strcpy((char *)dst, (char *)src);
 	}
 
+// mDNS core calls this routine to copy C strings while taking the destination
+// buffer size into account.
+// On the Posix platform this maps directly to the ANSI C strncpy.
+mDNSexport mDNSu32  mDNSPlatformStrLCopy(void *dst, const void *src, mDNSu32 dstlen)
+	{
+	return (strlcpy((char *)dst, (const char *)src, dstlen));
+	}
+
 // mDNS core calls this routine to get the length of a C string.
 // On the Posix platform this maps directly to the ANSI C strlen.
 mDNSexport mDNSu32  mDNSPlatformStrLen (const void *src)
