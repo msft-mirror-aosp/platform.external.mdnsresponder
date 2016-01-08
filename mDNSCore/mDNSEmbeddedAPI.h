@@ -2548,8 +2548,9 @@ mDNSInterfaceID InterfaceID, UDPSocket *src, const mDNSAddr *dst, mDNSIPPort dst
 extern void     mDNSPlatformLock        (const mDNS *const m);
 extern void     mDNSPlatformUnlock      (const mDNS *const m);
 
-extern void     mDNSPlatformStrCopy     (      void *dst, const void *src);
-extern mDNSu32  mDNSPlatformStrLen      (                 const void *src);
+mDNSexport void     mDNSPlatformStrCopy(      void *dst, const void *src);
+mDNSexport mDNSu32  mDNSPlatformStrLCopy(     void *dst, const void *src, mDNSu32 dstlen);
+mDNSexport mDNSu32  mDNSPlatformStrLen (                 const void *src);
 extern void     mDNSPlatformMemCopy     (      void *dst, const void *src, mDNSu32 len);
 extern mDNSBool mDNSPlatformMemSame     (const void *dst, const void *src, mDNSu32 len);
 extern void     mDNSPlatformMemZero     (      void *dst,                  mDNSu32 len);
