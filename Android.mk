@@ -30,29 +30,31 @@ commonFlags := \
     -Wno-unused-parameter \
     -Werror=implicit-function-declaration \
 
+daemonSources := mDNSPosix/PosixDaemon.c    \
+                 mDNSPosix/mDNSPosix.c      \
+                 mDNSPosix/mDNSUNP.c        \
+                 mDNSCore/mDNS.c            \
+                 mDNSCore/DNSDigest.c       \
+                 mDNSCore/uDNS.c            \
+                 mDNSCore/DNSCommon.c       \
+                 mDNSShared/uds_daemon.c    \
+                 mDNSShared/mDNSDebug.c     \
+                 mDNSShared/dnssd_ipc.c     \
+                 mDNSShared/GenLinkedList.c \
+                 mDNSShared/PlatformCommon.c
+
+daemonIncludes := external/mdnsresponder/mDNSPosix \
+                  external/mdnsresponder/mDNSCore  \
+                  external/mdnsresponder/mDNSShared
+
 #########################
 
 include $(CLEAR_VARS)
-
-LOCAL_SRC_FILES :=  mDNSPosix/PosixDaemon.c    \
-                    mDNSPosix/mDNSPosix.c      \
-                    mDNSPosix/mDNSUNP.c        \
-                    mDNSCore/mDNS.c            \
-                    mDNSCore/DNSDigest.c       \
-                    mDNSCore/uDNS.c            \
-                    mDNSCore/DNSCommon.c       \
-                    mDNSShared/uds_daemon.c    \
-                    mDNSShared/mDNSDebug.c     \
-                    mDNSShared/dnssd_ipc.c     \
-                    mDNSShared/GenLinkedList.c \
-                    mDNSShared/PlatformCommon.c
-
+LOCAL_SRC_FILES :=  $(daemonSources)
 LOCAL_MODULE := mdnsd
 LOCAL_MODULE_TAGS := optional
 
-LOCAL_C_INCLUDES := external/mdnsresponder/mDNSPosix \
-                    external/mdnsresponder/mDNSCore  \
-                    external/mdnsresponder/mDNSShared
+LOCAL_C_INCLUDES := $(daemonIncludes)
 
 LOCAL_CFLAGS := $(commonFlags) -DMDNS_VERSIONSTR_NODTS=1
 
@@ -60,6 +62,18 @@ LOCAL_STATIC_LIBRARIES := $(commonLibs) libc
 LOCAL_FORCE_STATIC_EXECUTABLE := true
 LOCAL_INIT_RC := mdnsd.rc
 include $(BUILD_EXECUTABLE)
+
+include $(CLEAR_VARS)
+LOCAL_SRC_FILES :=  $(daemonSources)
+LOCAL_MODULE := mdnsd
+LOCAL_MODULE_TAGS := optional
+
+LOCAL_C_INCLUDES := $(daemonIncludes)
+
+LOCAL_CFLAGS := $(commonFlags) -DMDNS_VERSIONSTR_NODTS=1
+
+LOCAL_STATIC_LIBRARIES := $(commonLibs)
+include $(BUILD_HOST_EXECUTABLE)
 
 ##########################
 
@@ -81,6 +95,15 @@ LOCAL_CFLAGS := $(commonFlags)
 LOCAL_STATIC_LIBRARIES := $(commonLibs)
 LOCAL_EXPORT_C_INCLUDE_DIRS := external/mdnsresponder/mDNSShared
 include $(BUILD_STATIC_LIBRARY)
+
+include $(CLEAR_VARS)
+LOCAL_SRC_FILES := $(commonSources)
+LOCAL_MODULE := libmdnssd
+LOCAL_MODULE_TAGS := optional
+LOCAL_CFLAGS := $(commonFlags)
+LOCAL_STATIC_LIBRARIES := $(commonLibs)
+LOCAL_EXPORT_C_INCLUDE_DIRS := external/mdnsresponder/mDNSShared
+include $(BUILD_HOST_STATIC_LIBRARY)
 
 ############################
 
