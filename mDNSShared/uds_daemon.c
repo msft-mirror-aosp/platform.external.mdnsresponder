@@ -21,7 +21,6 @@
 #else
 #include <fcntl.h>
 #include <errno.h>
-#include <cutils/log.h>
 #include <sys/ioctl.h>
 #include <sys/types.h>
 #include <sys/time.h>
@@ -1628,7 +1627,6 @@ mDNSlocal mStatus handle_regservice_request(request_state *request)
 	if (!request->msgptr)
 		{
 		LogMsg("%3d: DNSServiceRegister(unreadable parameters)", request->sd);
-		android_errorWriteWithInfoLog(0x534e4554, "25852056", -1, NULL, 0);
 		return(mStatus_BadParamErr);
 		}
 
