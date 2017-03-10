@@ -12,10 +12,8 @@ commonFlags := \
     -fno-strict-aliasing \
     -D_GNU_SOURCE \
     -DHAVE_IPV6 \
-    -DHAVE_LINUX \
     -DNOT_HAVE_SA_LEN \
     -DPLATFORM_NO_RLIMIT \
-    -DUSES_NETLINK \
     -DMDNS_DEBUGMSGS=0 \
     -DMDNS_UDS_SERVERPATH=\"/dev/socket/mdnsd\" \
     -DMDNS_USERNAME=\"mdnsr\" \
@@ -55,7 +53,12 @@ LOCAL_MODULE_TAGS := optional
 
 LOCAL_C_INCLUDES := $(daemonIncludes)
 
-LOCAL_CFLAGS := $(commonFlags) -DTARGET_OS_LINUX -DMDNS_VERSIONSTR_NODTS=1
+LOCAL_CFLAGS := \
+  $(commonFlags) \
+  -DTARGET_OS_LINUX \
+  -DMDNS_VERSIONSTR_NODTS=1 \
+  -DHAVE_LINUX \
+  -DUSES_NETLINK \
 
 LOCAL_STATIC_LIBRARIES := $(commonLibs) libc
 LOCAL_FORCE_STATIC_EXECUTABLE := true
@@ -69,7 +72,12 @@ LOCAL_MODULE_TAGS := optional
 
 LOCAL_C_INCLUDES := $(daemonIncludes)
 
-LOCAL_CFLAGS := $(commonFlags) -DMDNS_VERSIONSTR_NODTS=1 -DTARGET_OS_LINUX
+LOCAL_CFLAGS := \
+  $(commonFlags) \
+  -DMDNS_VERSIONSTR_NODTS=1 \
+
+LOCAL_CFLAGS_linux := -DTARGET_OS_LINUX -DHAVE_LINUX -DUSES_NETLINK
+LOCAL_CFLAGS_darwin := -DTARGET_OS_MAC
 
 LOCAL_STATIC_LIBRARIES := $(commonLibs)
 include $(BUILD_HOST_EXECUTABLE)
@@ -162,7 +170,7 @@ include $(CLEAR_VARS)
 LOCAL_SRC_FILES := $(commonSources)
 LOCAL_MODULE := libmdnssd
 LOCAL_MODULE_TAGS := optional
-LOCAL_CFLAGS := $(commonFlags) -DTARGET_OS_LINUX
+LOCAL_CFLAGS := $(commonFlags) -DTARGET_OS_LINUX -DHAVE_LINUX -DUSES_NETLINK
 LOCAL_SYSTEM_SHARED_LIBRARIES := libc
 LOCAL_SHARED_LIBRARIES := $(commonLibs)
 LOCAL_EXPORT_C_INCLUDE_DIRS := external/mdnsresponder/mDNSShared
@@ -172,7 +180,7 @@ include $(CLEAR_VARS)
 LOCAL_SRC_FILES := $(commonSources)
 LOCAL_MODULE := libmdnssd
 LOCAL_MODULE_TAGS := optional
-LOCAL_CFLAGS := $(commonFlags) -DTARGET_OS_LINUX
+LOCAL_CFLAGS := $(commonFlags) -DTARGET_OS_LINUX -DHAVE_LINUX -DUSES_NETLINK
 LOCAL_STATIC_LIBRARIES := $(commonLibs)
 LOCAL_EXPORT_C_INCLUDE_DIRS := external/mdnsresponder/mDNSShared
 include $(BUILD_STATIC_LIBRARY)
@@ -208,7 +216,7 @@ LOCAL_CFLAGS_windows := \
   -include stdlib.h \
   -include stdio.h
 
-LOCAL_CFLAGS_linux := -DTARGET_OS_LINUX
+LOCAL_CFLAGS_linux := -DTARGET_OS_LINUX -DHAVE_LINUX -DUSES_NETLINK
 LOCAL_CFLAGS_darwin := -DTARGET_OS_MAC
 LOCAL_STATIC_LIBRARIES := $(commonLibs)
 LOCAL_EXPORT_C_INCLUDE_DIRS := external/mdnsresponder/mDNSShared
@@ -223,7 +231,7 @@ include $(CLEAR_VARS)
 LOCAL_SRC_FILES := Clients/dns-sd.c Clients/ClientCommon.c
 LOCAL_MODULE := dnssd
 LOCAL_MODULE_TAGS := optional
-LOCAL_CFLAGS := $(commonFlags) -DTARGET_OS_LINUX
+LOCAL_CFLAGS := $(commonFlags) -DTARGET_OS_LINUX -DHAVE_LINUX -DUSES_NETLINK
 LOCAL_SYSTEM_SHARED_LIBRARIES := libc
 LOCAL_SHARED_LIBRARIES := libmdnssd libcutils liblog
 include $(BUILD_EXECUTABLE)
@@ -259,7 +267,9 @@ LOCAL_CFLAGS += $(commonFlags) \
                 -DMDNS_DEBUGMSGS=0 \
                 -DSO_REUSEADDR \
                 -DUNICAST_DISABLED \
-                -DTARGET_OS_LINUX
+                -DTARGET_OS_LINUX \
+                -DHAVE_LINUX \
+                -DUSES_NETLINK
 
 ifeq ($(TARGET_BUILD_TYPE),debug)
   LOCAL_CFLAGS += -O0 -UNDEBUG -fno-omit-frame-pointer
