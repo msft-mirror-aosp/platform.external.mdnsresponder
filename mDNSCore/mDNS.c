@@ -10641,7 +10641,7 @@ mDNSexport mStatus mDNS_Init(mDNS *const m, mDNS_PlatformSupport *const p,
 	// Task Scheduling variables
 	result = mDNSPlatformTimeInit();
 	if (result != mStatus_NoError) return(result);
-	m->timenow_adjust = (mDNSs32)mDNSRandom(0xFFFFFFFF);
+	m->timenow_adjust = 0;            // b/63335997 , High outbound network traffic
 	timenow = mDNS_TimeNow_NoLock(m);
 
 	m->timenow                 = 0;		// MUST only be set within mDNS_Lock/mDNS_Unlock section
