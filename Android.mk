@@ -20,6 +20,7 @@ commonFlags := \
     -W \
     -Wall \
     -Wextra \
+    -Wno-address-of-packed-member \
     -Wno-array-bounds \
     -Wno-pointer-sign \
     -Wno-unused \
