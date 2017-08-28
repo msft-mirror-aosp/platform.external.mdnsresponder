@@ -114,7 +114,8 @@ mingw_bin := prebuilts/gcc/$(HOST_PREBUILT_TAG)/host/x86_64-w64-mingw32-4.8/bin
 windmc := $(mingw_bin)/x86_64-w64-mingw32-windmc
 windres := $(mingw_bin)/x86_64-w64-mingw32-windres
 
-$(event_log_h) $(event_log_o): $(event_log_mc)
+$(event_log_h): .KATI_IMPLICIT_OUTPUTS := $(event_log_o)
+$(event_log_h): $(event_log_mc)
 	@echo "Generating EventLog messages"
 	@mkdir -p $(mdnsd_generated_sources)
 	@$(windmc) -r$(mdnsd_generated_sources) -h$(mdnsd_generated_sources) $<
