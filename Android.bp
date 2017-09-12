@@ -206,7 +206,7 @@ cc_binary {
         "Clients/ClientCommon.c",
     ],
 
-    system_shared_libs: ["libc"],
+    system_shared_libs: ["libc", "libdl"],
     shared_libs: [
         "libmdnssd",
         "libcutils",
