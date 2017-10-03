@@ -36,7 +36,7 @@ cc_defaults {
                 "-DUSES_NETLINK",
             ],
         },
-        linux: {
+        linux_glibc: {
             cflags: [
                 "-DTARGET_OS_LINUX",
                 "-DHAVE_LINUX",
