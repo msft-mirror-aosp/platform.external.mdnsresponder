@@ -34,6 +34,7 @@ cc_defaults {
                 "-DTARGET_OS_LINUX",
                 "-DHAVE_LINUX",
                 "-DUSES_NETLINK",
+                "-Werror",
             ],
         },
         linux_glibc: {
@@ -41,6 +42,7 @@ cc_defaults {
                 "-DTARGET_OS_LINUX",
                 "-DHAVE_LINUX",
                 "-DUSES_NETLINK",
+                "-Werror",
             ],
         },
         darwin: {
