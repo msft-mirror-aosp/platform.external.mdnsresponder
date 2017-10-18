@@ -30,15 +30,7 @@ cc_defaults {
         "-Werror=implicit-function-declaration",
     ],
     target: {
-        android: {
-            cflags: [
-                "-DTARGET_OS_LINUX",
-                "-DHAVE_LINUX",
-                "-DUSES_NETLINK",
-                "-Werror",
-            ],
-        },
-        linux_glibc: {
+        linux: {
             cflags: [
                 "-DTARGET_OS_LINUX",
                 "-DHAVE_LINUX",
