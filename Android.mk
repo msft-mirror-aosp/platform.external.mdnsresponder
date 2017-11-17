@@ -10,7 +10,6 @@ commonLibs := libcutils liblog
 commonFlags := \
     -O2 -g \
     -fno-strict-aliasing \
-    -fwrapv \
     -D_GNU_SOURCE \
     -DHAVE_IPV6 \
     -DNOT_HAVE_SA_LEN \
@@ -21,7 +20,6 @@ commonFlags := \
     -W \
     -Wall \
     -Wextra \
-    -Wno-address-of-packed-member \
     -Wno-array-bounds \
     -Wno-pointer-sign \
     -Wno-unused \
