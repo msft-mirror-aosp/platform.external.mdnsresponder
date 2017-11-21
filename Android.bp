@@ -39,7 +39,10 @@ cc_defaults {
             ],
         },
         darwin: {
-            cflags: ["-DTARGET_OS_MAC"],
+            cflags: [
+                "-DTARGET_OS_MAC",
+                "-Wno-error",
+            ],
         },
         windows: {
             enabled: true,
@@ -51,6 +54,7 @@ cc_defaults {
                 "-DUSE_TCP_LOOPBACK",
                 "-D_CRT_SECURE_NO_DEPRECATE",
                 "-D_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1",
+                "-Wno-error",
                 "-Wno-sign-compare",
                 "-include stdint.h",
                 "-include winsock2.h",
