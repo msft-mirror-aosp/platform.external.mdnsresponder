@@ -41,6 +41,7 @@ cc_defaults {
         darwin: {
             cflags: [
                 "-DTARGET_OS_MAC",
+                "-DMDNS_UDS_SERVERPATH=\"/var/run/mDNSResponder\"",
                 "-Wno-error",
             ],
         },
