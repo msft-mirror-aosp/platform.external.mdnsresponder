@@ -185,6 +185,7 @@ cc_library {
                 "-DNOT_HAVE_SA_LENGTH",
                 "-Wno-unknown-pragmas",
                 "-Wno-overflow",
+                "-Wno-pragma-pack",
                 "-include iphlpapi.h",
                 "-include stdlib.h",
                 "-include stdio.h",
