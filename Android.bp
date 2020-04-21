@@ -195,6 +195,11 @@ cc_library {
 
     static_libs: ["libcutils"],
     shared_libs: ["liblog"],
+
+    apex_available: [
+        "//apex_available:platform",
+        "com.android.adbd",
+    ],
 }
 
 //###########################
