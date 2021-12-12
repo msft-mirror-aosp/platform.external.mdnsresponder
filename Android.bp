@@ -123,11 +123,10 @@ cc_binary {
         "mDNSShared",
     ],
     init_rc: ["mdnsd.rc"],
-    static_executable: true,
 
     cflags: ["-DMDNS_VERSIONSTR_NODTS=1"],
 
-    static_libs: [
+    shared_libs: [
         "libcutils",
         "liblog",
     ],
