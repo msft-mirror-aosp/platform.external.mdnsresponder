@@ -505,7 +505,7 @@ mDNSexport int ParseDNSServers(mDNS *m, const char *filePath)
 	{
 	char line[256];
 	char nameserver[16];
-	char keyword[11];
+	char keyword[10];
 	int  numOfServers = 0;
 	FILE *fp = fopen(filePath, "r");
 	if (fp == NULL) return -1;
@@ -581,88 +581,42 @@ mDNSexport mDNSu32 mDNSPlatformInterfaceIndexfromInterfaceID(mDNS *const m, mDNS
 	return intf ? intf->index : 0;
 	}
 
-// Remove an interface identified by its index from the provided list, and return it.
-// This takes a pointer to a list of interfaces, where NULL represents the empty list.
-mDNSlocal PosixNetworkInterface *RemoveInterfaceFromListByIndex(PosixNetworkInterface **list, int index)
-	{
-	while (list && *list)
-		{
-		PosixNetworkInterface *current = *list;
-		if (current->index == index)
-			{
-			*list = (PosixNetworkInterface*)current->coreIntf.next;
-			current->coreIntf.next = NULL;
-			return current;
-			}
-		list = (PosixNetworkInterface**)&(current->coreIntf.next);
-		}
-	return NULL;
-	}
-
-// Close sockets on the specified PosixNetworkInterface structure. The underlying
+// Frees the specified PosixNetworkInterface structure. The underlying
 // interface must have already been deregistered with the mDNS core.
-mDNSlocal void ClosePosixNetworkInterface(PosixNetworkInterface *intf)
+mDNSlocal void FreePosixNetworkInterface(PosixNetworkInterface *intf)
 	{
 	assert(intf != NULL);
+	if (intf->intfName != NULL)        free((void *)intf->intfName);
 	if (intf->multicastSocket4 != -1)
 		{
 		int ipv4_closed = close(intf->multicastSocket4);
 		assert(ipv4_closed == 0);
-		intf->multicastSocket4 = -1;
 		}
 #if HAVE_IPV6
 	if (intf->multicastSocket6 != -1)
 		{
 		int ipv6_closed = close(intf->multicastSocket6);
 		assert(ipv6_closed == 0);
-		intf->multicastSocket6 = -1;
 		}
 #endif
-	}
-
-// Free the specified PosixNetworkInterface structure. The underlying
-// interface must have already been deregistered with the mDNS core.
-mDNSlocal void FreePosixNetworkInterface(PosixNetworkInterface *intf)
-	{
-	assert(intf != NULL);
-	assert(intf->coreIntf.next == NULL);
-	ClosePosixNetworkInterface(intf);
-	free((void *)intf->intfName);
 	free(intf);
 	}
 
-// Frees a list of PosixNetworkInterfaces
-mDNSlocal void FreePosixNetworkInterfaceList(PosixNetworkInterface *intfList)
-	{
-	while (intfList)
-	  {
-		PosixNetworkInterface *next = (PosixNetworkInterface*)(intfList->coreIntf.next);
-		intfList->coreIntf.next = NULL;
-		FreePosixNetworkInterface(intfList);
-		intfList = next;
-	  }
-	}
-
-// Grab the first interface, deregister it, close it, and repeat until done.
-// Returns the list of deregistered interfaces, or NULL if none.
-mDNSlocal PosixNetworkInterface *CloseInterfaceList(mDNS *const m)
+// Grab the first interface, deregister it, free it, and repeat until done.
+mDNSlocal void ClearInterfaceList(mDNS *const m)
 	{
 	assert(m != NULL);
-	PosixNetworkInterface *ret = NULL;
+
 	while (m->HostInterfaces)
 		{
 		PosixNetworkInterface *intf = (PosixNetworkInterface*)(m->HostInterfaces);
 		mDNS_DeregisterInterface(m, &intf->coreIntf, mDNSfalse);
 		if (gMDNSPlatformPosixVerboseLevel > 0) fprintf(stderr, "Deregistered interface %s\n", intf->intfName);
-		ClosePosixNetworkInterface(intf);
-		assert(intf->coreIntf.next == NULL);
-		intf->coreIntf.next = (NetworkInterfaceInfo*)ret;
-		ret = intf;
+		FreePosixNetworkInterface(intf);
 		}
 	num_registered_interfaces = 0;
 	num_pkts_accepted = 0;
 	num_pkts_rejected = 0;
-	return ret;
 	}
 
 // Sets up a send/receive socket.
@@ -894,10 +848,10 @@ mDNSlocal int SetupSocket(struct sockaddr *intfAddr, mDNSIPPort port, int interf
 
 // Creates a PosixNetworkInterface for the interface whose IP address is
 // intfAddr and whose name is intfName and registers it with mDNS core.
-mDNSlocal int SetupOneInterface(mDNS *const m, struct sockaddr *intfAddr, struct sockaddr *intfMask, const char *intfName, int intfIndex, PosixNetworkInterface **cachedList)
+mDNSlocal int SetupOneInterface(mDNS *const m, struct sockaddr *intfAddr, struct sockaddr *intfMask, const char *intfName, int intfIndex)
 	{
 	int err = 0;
-	PosixNetworkInterface *intf = NULL;
+	PosixNetworkInterface *intf;
 	PosixNetworkInterface *alias = NULL;
 
 	assert(m != NULL);
@@ -905,18 +859,15 @@ mDNSlocal int SetupOneInterface(mDNS *const m, struct sockaddr *intfAddr, struct
 	assert(intfName != NULL);
 	assert(intfMask != NULL);
 
-	intf = RemoveInterfaceFromListByIndex(cachedList, intfIndex);
-	if (intf == NULL)
+	// Allocate the interface structure itself.
+	intf = (PosixNetworkInterface*)malloc(sizeof(*intf));
+	if (intf == NULL) { assert(0); err = ENOMEM; }
+
+	// And make a copy of the intfName.
+	if (err == 0)
 		{
-		// Allocate the interface structure itself.
-		intf = (PosixNetworkInterface*)malloc(sizeof(*intf));
-		if (intf == NULL) { assert(0); err = ENOMEM; }
-		// And make a copy of the intfName.
-		if (err == 0)
-			{
-			intf->intfName = strdup(intfName);
-			if (intf->intfName == NULL) { assert(0); err = ENOMEM; }
-			}
+		intf->intfName = strdup(intfName);
+		if (intf->intfName == NULL) { assert(0); err = ENOMEM; }
 		}
 
 	if (err == 0)
@@ -982,7 +933,7 @@ mDNSlocal int SetupOneInterface(mDNS *const m, struct sockaddr *intfAddr, struct
 	}
 
 // Call get_ifi_info() to obtain a list of active interfaces and call SetupOneInterface() on each one.
-mDNSlocal int SetupInterfaceList(mDNS *const m, PosixNetworkInterface **cachedList)
+mDNSlocal int SetupInterfaceList(mDNS *const m)
 	{
 	mDNSBool        foundav4       = mDNSfalse;
 	int             err            = 0;
@@ -1021,7 +972,7 @@ mDNSlocal int SetupInterfaceList(mDNS *const m, PosixNetworkInterface **cachedLi
 					}
 				else if (i->ifi_flags & (IFF_MULTICAST | IFF_BROADCAST))  // http://b/25669326
 					{
-					if (SetupOneInterface(m, i->ifi_addr, i->ifi_netmask, i->ifi_name, i->ifi_index, cachedList) == 0)
+					if (SetupOneInterface(m, i->ifi_addr, i->ifi_netmask, i->ifi_name, i->ifi_index) == 0)
 						if (i->ifi_addr->sa_family == AF_INET)
 							foundav4 = mDNStrue;
 					}
@@ -1035,7 +986,7 @@ mDNSlocal int SetupInterfaceList(mDNS *const m, PosixNetworkInterface **cachedLi
 		// In the interim, we skip loopback interface only if we found at least one v4 interface to use
 		// if ((m->HostInterfaces == NULL) && (firstLoopback != NULL))
 		if (!foundav4 && firstLoopback)
-			(void) SetupOneInterface(m, firstLoopback->ifi_addr, firstLoopback->ifi_netmask, firstLoopback->ifi_name, firstLoopback->ifi_index, cachedList);
+			(void) SetupOneInterface(m, firstLoopback->ifi_addr, firstLoopback->ifi_netmask, firstLoopback->ifi_name, firstLoopback->ifi_index);
 		}
 
 	// Clean up.
@@ -1319,7 +1270,7 @@ mDNSexport mStatus mDNSPlatformInit(mDNS *const m)
 #endif
 
 	// Tell mDNS core about the network interfaces on this machine.
-	if (err == mStatus_NoError) err = SetupInterfaceList(m, NULL);
+	if (err == mStatus_NoError) err = SetupInterfaceList(m);
 
 	// Tell mDNS core about DNS Servers
 	mDNS_Lock(m);
@@ -1351,9 +1302,7 @@ mDNSexport mStatus mDNSPlatformInit(mDNS *const m)
 mDNSexport void mDNSPlatformClose(mDNS *const m)
 	{
 	assert(m != NULL);
-	PosixNetworkInterface *closedList = CloseInterfaceList(m);
-	FreePosixNetworkInterfaceList(closedList);
-
+	ClearInterfaceList(m);
 	if (m->p->unicastSocket4 != -1)
 		{
 		int ipv4_closed = close(m->p->unicastSocket4);
@@ -1371,9 +1320,8 @@ mDNSexport void mDNSPlatformClose(mDNS *const m)
 mDNSexport mStatus mDNSPlatformPosixRefreshInterfaceList(mDNS *const m)
 	{
 	int err;
-	PosixNetworkInterface *closedList = CloseInterfaceList(m);
-	err = SetupInterfaceList(m, &closedList);
-	FreePosixNetworkInterfaceList(closedList);
+	ClearInterfaceList(m);
+	err = SetupInterfaceList(m);
 	return PosixErrorToStatus(err);
 	}
 
