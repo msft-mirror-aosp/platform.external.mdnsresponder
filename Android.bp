@@ -180,6 +180,10 @@ cc_library {
         "//apex_available:platform",
         "com.android.adbd",
     ],
+    visibility: [
+        "//bootable/recovery/minadbd:__subpackages__",
+        "//packages/modules/adb:__subpackages__",
+    ],
 }
 
 //###########################
