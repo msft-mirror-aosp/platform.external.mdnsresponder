@@ -185,21 +185,3 @@ cc_library {
         "//packages/modules/adb:__subpackages__",
     ],
 }
-
-//###########################
-
-cc_binary {
-    name: "dnssd",
-    defaults: ["mdnsresponder_default_cflags"],
-    srcs: [
-        "Clients/dns-sd.c",
-        "Clients/ClientCommon.c",
-    ],
-
-    system_shared_libs: ["libc", "libdl"],
-    shared_libs: [
-        "libmdnssd",
-        "libcutils",
-        "liblog",
-    ],
-}
